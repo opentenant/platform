@@ -125,16 +125,26 @@ export class SupabaseTenantDTO implements Omit<
 
 export type Platform = 'github' | 'gitlab';
 
-export interface PipelineConfig {
+export class PipelineConfig {
+  @ApiProperty()
   id: string;
+  @ApiProperty()
   repoFullName: string; // e.g. "owner/repo" or "group/project"
+  @ApiProperty()
   platform: Platform;
+  @ApiProperty()
   path: string; // path inside the repo e.g. ".ffmpeglab/pipeline.yml"
+  @ApiProperty()
   ref: string; // branch/tag
+  @ApiProperty()
   projectId: string; // Supabase project ID to apply migrations to
+  @ApiProperty()
   status: 'on' | 'off';
+  @ApiProperty()
   createdAt: number;
+  @ApiProperty()
   updatedAt: number;
+  @ApiProperty()
   lastCommitSha?: string;
 }
 
