@@ -28,7 +28,7 @@ import { ValidatorController } from './pipelines/validator.controller';
     GithubLoginController,
     PipelineController,
     WebhookController,
-    ValidatorController
+    ValidatorController,
   ],
   providers: [SupabaseService, PipelineService, GithubService],
 })
