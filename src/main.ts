@@ -13,13 +13,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Capture raw body for webhook signature verification
-  app.use(
-    express.json({
-      verify: (req, res, buf) => {
-        (req as any).rawBody = buf;
-      },
-    }),
-  );
+  // app.use(
+  //   express.json({
+  //     verify: (req, res, buf) => {
+  //       (req as any).rawBody = buf;
+  //     },
+  //   }),
+  // );
 
   const config = new DocumentBuilder()
     .setTitle('OpenTenant Platform')

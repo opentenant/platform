@@ -29,7 +29,6 @@ function encodeRepoKey(repoFullName: string): string {
   return Buffer.from(repoFullName, 'utf-8').toString('base64url');
 }
 
-
 @Injectable()
 export class PipelineService {
   // ---- inject AppService ----
