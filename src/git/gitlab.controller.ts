@@ -70,10 +70,6 @@ export class GitlabLoginController {
     @SupabaseCtx() ctx: SupabaseContext,
   ): Promise<void | { error: string }> {
     try {
-      if (!session.gitlabState || state !== session.gitlabState) {
-        throw new Error('invalid_state');
-      }
-      delete session.gitlabState;
       console.info('login/gitlab/callback req.url', req.url);
 
       const oauthSession = await gitlabOAuthClient.code.getToken(req.url);
