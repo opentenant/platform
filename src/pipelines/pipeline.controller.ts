@@ -54,7 +54,7 @@ export class PipelineController {
   // ---- whoami ----
   @Get('whoami')
   async whoami(
-    @Query('provider') provider: 'github' | 'gitlab',
+    @Query('provider') provider: Platform,
     @SupabaseCtx('userClaims') user,
   ) {
     return this.pipelineService.whoami(user!.id, provider);
