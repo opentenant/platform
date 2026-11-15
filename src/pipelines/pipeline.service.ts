@@ -86,21 +86,24 @@ export class PipelineService {
   }
 
   // ---- whoami ----
-  async whoami(userId: string): Promise<{
+  async whoami(
+    userId: string,
+    platform: Platform,
+  ): Promise<{
     login: string;
     provider: 'github' | 'gitlab';
     avatar_url?: string;
   }> {
-    for (const platform of ['github', 'gitlab'] as const) {
-      try {
-        const session = await this.getSessionForUser(userId, platform);
-        const adapter = getGitAdapter(platform);
-        const profile = await adapter.getProfile(session.accessToken);
-        return { ...profile, provider: platform };
-      } catch {
-        // try next platform
-      }
+    // for (const platform of ['github', 'gitlab'] as const) {
+    try {
+      const session = await this.getSessionForUser(userId, platform);
+      const adapter = getGitAdapter(platform);
+      const profile = await adapter.getProfile(session.accessToken);
+      return { ...profile, provider: platform };
+    } catch {
+      // try next platform
     }
+    // }
     throw new UnauthorizedException('no_git_session');
   }
 
