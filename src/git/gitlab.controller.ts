@@ -17,6 +17,9 @@ import { supabaseEnv, config, WEBAPP_BASE } from '../config';
 import { ConnectRedirectResponseDTO } from '../types';
 import { PipelineService } from '../pipelines/pipeline.service';
 import { GITLAB_HOST, gitlabOAuthClient } from './gitlab-auth';
+import { Users } from '../model/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Controller('git')
 @UseGuards(
@@ -26,7 +29,11 @@ import { GITLAB_HOST, gitlabOAuthClient } from './gitlab-auth';
   }),
 )
 export class GitlabLoginController {
-  constructor(private readonly pipelineService: PipelineService) {}
+  constructor(
+    @InjectRepository(Users)
+    private userRepo: Repository<Users>,
+    private readonly pipelineService: PipelineService,
+  ) {}
 
   @Get('login/gitlab')
   @ApiResponse({ type: ConnectRedirectResponseDTO })
@@ -67,6 +74,7 @@ export class GitlabLoginController {
         throw new Error('invalid_state');
       }
       delete session.gitlabState;
+      console.info('login/gitlab/callback req.url', req.url);
 
       const oauthSession = await gitlabOAuthClient.code.getToken(req.url);
       if (!oauthSession.accessToken) throw new Error('invalid_tokens');
@@ -75,16 +83,18 @@ export class GitlabLoginController {
         headers: { Authorization: `Bearer ${oauthSession.accessToken}` },
       });
       const profile = await glRes.json();
+
       const email = profile.email;
+
       if (!email) throw new Error('no_email');
 
       console.log('[gitlab/callback] profile:', profile);
 
-      const {
-        data: { users },
-      } = await ctx.supabaseAdmin.auth.admin.listUsers();
+      const existingUser: Users | null = await this.userRepo.findOneBy({
+        email,
+      });
 
-      let userId = users.find((u: User) => u.email === email)?.id;
+      let userId = existingUser?.id;
 
       if (!userId) {
         const { data: newUser, error } =
