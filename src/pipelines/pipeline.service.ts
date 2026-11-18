@@ -14,17 +14,14 @@ import {
   UpdatePipelineDTO,
   Platform,
 } from '../types';
-import { getGitAdapter, DirEntry } from '../git/git-clients';
 import ClientOAuth2 from 'client-oauth2';
 import { createInstallationAccessToken } from '../git/github-auth';
 import { gitlabOAuthClient } from '../git/gitlab-auth';
 import { SupabaseService } from '../supabase/supabase.service';
-
+import { DirEntry, getGitAdapter } from 'git-adapter';
+import { config as appConfig } from '../config';
 const secretsClient = new vault.SecretsApi(vaultClientConfig);
 
-// repoFullName contains "/", which Vault treats as a path separator.
-// We encode it so each pipeline is a single flat key under pipelines/<userId>/
-// and can be reconstructed exactly from kvV2List output.
 function encodeRepoKey(repoFullName: string): string {
   return Buffer.from(repoFullName, 'utf-8').toString('base64url');
 }
@@ -39,7 +36,6 @@ export class PipelineService {
     userId: string,
     platform: string,
   ): Promise<RepoSession> {
-    // For GitHub, prefer installation token if available
     if (platform === 'github') {
       try {
         const token = await this.getInstallationTokenForUser(userId);
@@ -91,19 +87,22 @@ export class PipelineService {
     platform: Platform,
   ): Promise<{
     login: string;
-    provider: 'github' | 'gitlab';
+    provider: 'github' | 'gitlab' | 'gitlab.custom';
     avatar_url?: string;
   }> {
-    // for (const platform of ['github', 'gitlab'] as const) {
     try {
       const session = await this.getSessionForUser(userId, platform);
-      const adapter = getGitAdapter(platform);
+      const adapter = getGitAdapter(platform, {
+        customGitlab: {
+          apiUrl: appConfig.customGitlabHost,
+          agentUser: appConfig.customGitlabAgentUser,
+        },
+        github: { agentUser: appConfig.githubAgentUser },
+        gitlab: { agentUser: appConfig.gitlabComAgentUser },
+      });
       const profile = await adapter.getProfile(session.accessToken);
       return { ...profile, provider: platform };
-    } catch {
-      // try next platform
-    }
-    // }
+    } catch {}
     throw new UnauthorizedException('no_git_session');
   }
 
@@ -116,7 +115,15 @@ export class PipelineService {
     ref: string,
   ): Promise<DirEntry[]> {
     const session = await this.getSessionForUser(userId, platform);
-    const adapter = getGitAdapter(platform);
+
+    const adapter = getGitAdapter(platform, {
+      customGitlab: {
+        apiUrl: appConfig.customGitlabHost,
+        agentUser: appConfig.customGitlabAgentUser,
+      },
+      github: { agentUser: appConfig.githubAgentUser },
+      gitlab: { agentUser: appConfig.gitlabComAgentUser },
+    });
     return adapter.getContents(session.accessToken, repoFullName, path, ref);
   }
 
@@ -126,7 +133,14 @@ export class PipelineService {
     body: CreatePipelineDTO,
   ): Promise<PipelineConfig> {
     const session = await this.getSessionForUser(userId, body.platform);
-    const adapter = getGitAdapter(body.platform);
+    const adapter = getGitAdapter(body.platform, {
+      customGitlab: {
+        apiUrl: appConfig.customGitlabHost,
+        agentUser: appConfig.customGitlabAgentUser,
+      },
+      github: { agentUser: appConfig.githubAgentUser },
+      gitlab: { agentUser: appConfig.gitlabComAgentUser },
+    });
 
     // verify repo access
     await adapter.getRepo(session.accessToken, body.repoFullName);
@@ -149,6 +163,13 @@ export class PipelineService {
     if (existing) {
       throw new BadRequestException('pipeline_already_attached');
     }
+    const agent = await adapter.getAgentUser();
+    await adapter.inviteUser(
+      session.accessToken,
+      body.repoFullName,
+      agent,
+      'read',
+    );
 
     const now = Date.now();
     const config: PipelineConfig = {
@@ -181,6 +202,24 @@ export class PipelineService {
     return config;
   }
 
+  // ---- create repo & attach pipeline ----
+  async createRepo(
+    userId: string,
+    body: CreatePipelineDTO,
+  ): Promise<PipelineConfig> {
+    const session = await this.getSessionForUser(userId, body.platform);
+    const git = getGitAdapter(body.platform, {
+      customGitlab: {
+        apiUrl: appConfig.customGitlabHost,
+        agentUser: appConfig.customGitlabAgentUser,
+      },
+      github: { agentUser: appConfig.githubAgentUser },
+      gitlab: { agentUser: appConfig.gitlabComAgentUser },
+    });
+    await git.createRepo(session.accessToken, body.repoFullName, true);
+    return this.attachPipeline(userId, body);
+  }
+
   async updatePipeline(
     userId: string,
     projectId: string,
@@ -194,7 +233,15 @@ export class PipelineService {
     // re-validate path/ref changes against the remote
     if (body.path || body.ref) {
       const session = await this.getSessionForUser(userId, config.platform);
-      const adapter = getGitAdapter(config.platform);
+
+      const adapter = getGitAdapter(config.platform, {
+        customGitlab: {
+          apiUrl: appConfig.customGitlabHost,
+          agentUser: appConfig.customGitlabAgentUser,
+        },
+        github: { agentUser: appConfig.githubAgentUser },
+        gitlab: { agentUser: appConfig.gitlabComAgentUser },
+      });
       const file = await adapter.getFile(
         session.accessToken,
         next.repoFullName,
@@ -293,7 +340,15 @@ export class PipelineService {
 
     // 3. Get the Git session and adapter
     const session = await this.getSessionForUser(userId, config.platform);
-    const adapter = getGitAdapter(config.platform);
+
+    const adapter = getGitAdapter(config.platform, {
+      customGitlab: {
+        apiUrl: appConfig.customGitlabHost,
+        agentUser: appConfig.customGitlabAgentUser,
+      },
+      github: { agentUser: appConfig.githubAgentUser },
+      gitlab: { agentUser: appConfig.gitlabComAgentUser },
+    });
 
     // 4. Fetch the migration file at the given path and ref (which is the branch)
     const file = await adapter.getFile(

@@ -123,7 +123,7 @@ export class SupabaseTenantDTO implements Omit<
   created_at: string;
 }
 
-export type Platform = 'github' | 'gitlab';
+export type Platform = 'github' | 'gitlab' | 'gitlab.custom';
 
 export class PipelineConfig {
   @ApiProperty()

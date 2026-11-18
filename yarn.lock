@@ -3927,6 +3927,11 @@ get-uri@8.0.1:
     data-uri-to-buffer "8.0.0"
     debug "^4.3.4"
 
+git-adapter@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/git-adapter/-/git-adapter-1.0.1.tgz#6865ede0b0d78c514c9b0f86efdce68711246d80"
+  integrity sha512-kNlvX4/tybBWQZPwaEkpxvwXpuF0vcY269j6qIyUU4LnTQ7eNVrd9Ocvk9KNMMTjSdXL4QAGLaU+g3hwcsULCw==
+
 glob-parent@^6.0.2:
   version "6.0.2"
   resolved "https://registry.npmjs.org/glob-parent/-/glob-parent-6.0.2.tgz"
