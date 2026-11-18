@@ -21,6 +21,11 @@ export const config = {
   clientSecret: process.env.SUPA_CONNECT_CLIENT_SECRET,
   authorizationUri: 'https://api.supabase.com/v1/oauth/authorize',
   accessTokenUri: 'https://api.supabase.com/v1/oauth/token',
+  customGitlabHost:
+    process.env.CUSTOM_GITLAB_HOST || 'https://gitlab.ffmpeglab.com',
+  githubAgentUser: process.env.GITHUB_USER_AGENT || 'ffmpeglabs',
+  gitlabComAgentUser: process.env.GITLAB_COM_AGENT_USER || 'ffmpeglab1',
+  customGitlabAgentUser: process.env.GITLAB_AGENT_USER || 'ffmpeglabs',
   redirectUri: PLATFORM_HOST + '/platform/oauth2/callback',
   supabaseConnectRedirect:
     process.env.WEBAPP_HOST + '/pipelines?showPipelineTemplates=true',

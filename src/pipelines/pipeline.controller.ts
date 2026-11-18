@@ -13,10 +13,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { withSupabase, SupabaseCtx } from '@supabase/server/adapters/nestjs';
-import { supabaseEnv } from '../config';
+import { supabaseEnv, config as appConfig } from '../config';
 import { CreatePipelineDTO, PipelineConfig, UpdatePipelineDTO } from '../types';
 import { PipelineService } from './pipeline.service';
-import { getGitAdapter } from '../git/git-clients';
+import { getGitAdapter } from 'git-adapter';
 import type { Platform } from '../types';
 import { githubOAuthClient } from '../git/github-auth';
 import { gitlabOAuthClient } from '../git/gitlab-auth';
@@ -71,7 +71,15 @@ export class PipelineController {
       user!.id,
       platform,
     );
-    const adapter = getGitAdapter(platform);
+
+    const adapter = getGitAdapter(platform, {
+      customGitlab: {
+        apiUrl: appConfig.customGitlabHost,
+        agentUser: appConfig.customGitlabAgentUser,
+      },
+      github: { agentUser: appConfig.githubAgentUser },
+      gitlab: { agentUser: appConfig.gitlabComAgentUser },
+    });
     return adapter.listRepos(session.accessToken);
   }
 
@@ -97,13 +105,20 @@ export class PipelineController {
     );
   }
 
-  // ---- attach pipeline ----
   @Post('pipeline')
   async attachPipeline(
     @Body() body: CreatePipelineDTO,
     @SupabaseCtx('userClaims') user,
   ): Promise<PipelineConfig> {
     return this.pipelineService.attachPipeline(user!.id, body);
+  }
+
+  @Post('repo')
+  async createRepo(
+    @Body() body: CreatePipelineDTO,
+    @SupabaseCtx('userClaims') user,
+  ): Promise<PipelineConfig> {
+    return this.pipelineService.createRepo(user!.id, body);
   }
 
   @Get('pipeline/:projectId')
