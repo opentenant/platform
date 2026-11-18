@@ -10,7 +10,6 @@ import {
 import { ApiResponse } from '@nestjs/swagger';
 import { withSupabase, SupabaseCtx } from '@supabase/server/adapters/nestjs';
 import type { SupabaseContext } from '@supabase/server';
-import { User } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
 
 import { supabaseEnv, config, WEBAPP_BASE } from '../config';

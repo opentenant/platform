@@ -1,6 +1,7 @@
 import { V1ProjectWithDatabaseResponseStatus } from 'supabase-management-js';
 import { getProject } from './supabase/supabase';
 import { ApiProperty } from '@nestjs/swagger';
+import type { Platform } from 'git-adapter';
 
 export class SupabaseSession {
   @ApiProperty()
@@ -122,8 +123,6 @@ export class SupabaseTenantDTO implements Omit<
   @ApiProperty()
   created_at: string;
 }
-
-export type Platform = 'github' | 'gitlab' | 'gitlab.custom';
 
 export class PipelineConfig {
   @ApiProperty()
