@@ -162,13 +162,17 @@ export class PipelineService {
     if (existing) {
       throw new BadRequestException('pipeline_already_attached');
     }
-    const agent = await adapter.getAgentUser();
-    await adapter.inviteUser(
-      session.accessToken,
-      body.repoFullName,
-      agent,
-      'read',
-    );
+    try {
+      const agent = await adapter.getAgentUser();
+      await adapter.inviteUser(
+        session.accessToken,
+        body.repoFullName,
+        agent,
+        'read',
+      );
+    } catch(err) {
+      console.error('was not able to invite agent user', err)
+    }
 
     const now = Date.now();
     const config: PipelineConfig = {
