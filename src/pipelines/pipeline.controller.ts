@@ -17,7 +17,7 @@ import { supabaseEnv, config as appConfig } from '../config';
 import { CreatePipelineDTO, PipelineConfig, UpdatePipelineDTO } from '../types';
 import { PipelineService } from './pipeline.service';
 import { getGitAdapter } from 'git-adapter';
-import type { Platform } from '../types';
+import type { Platform } from 'git-adapter';
 import { githubOAuthClient } from '../git/github-auth';
 import { gitlabOAuthClient } from '../git/gitlab-auth';
 
@@ -80,7 +80,7 @@ export class PipelineController {
       github: { agentUser: appConfig.githubAgentUser },
       gitlab: { agentUser: appConfig.gitlabComAgentUser },
     });
-    return adapter.listRepos(session.accessToken);
+    return adapter.listRepos(session.accessToken, { page: 0, perPage: 100 });
   }
 
   // ---- browse directory contents ----

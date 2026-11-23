@@ -12,13 +12,12 @@ import {
   PipelineConfig,
   RepoSession,
   UpdatePipelineDTO,
-  Platform,
 } from '../types';
 import ClientOAuth2 from 'client-oauth2';
 import { createInstallationAccessToken } from '../git/github-auth';
 import { gitlabOAuthClient } from '../git/gitlab-auth';
 import { SupabaseService } from '../supabase/supabase.service';
-import { DirEntry, getGitAdapter } from 'git-adapter';
+import { DirEntry, getGitAdapter, Platform } from 'git-adapter';
 import { config as appConfig } from '../config';
 const secretsClient = new vault.SecretsApi(vaultClientConfig);
 
@@ -163,13 +162,17 @@ export class PipelineService {
     if (existing) {
       throw new BadRequestException('pipeline_already_attached');
     }
-    const agent = await adapter.getAgentUser();
-    await adapter.inviteUser(
-      session.accessToken,
-      body.repoFullName,
-      agent,
-      'read',
-    );
+    try {
+      const agent = await adapter.getAgentUser();
+      await adapter.inviteUser(
+        session.accessToken,
+        body.repoFullName,
+        agent,
+        'read',
+      );
+    } catch (err) {
+      console.error('was not able to invite agent user', err);
+    }
 
     const now = Date.now();
     const config: PipelineConfig = {
