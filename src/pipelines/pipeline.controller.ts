@@ -80,7 +80,7 @@ export class PipelineController {
       github: { agentUser: appConfig.githubAgentUser },
       gitlab: { agentUser: appConfig.gitlabComAgentUser },
     });
-    return adapter.listRepos(session.accessToken, {page:0, perPage:100});
+    return adapter.listRepos(session.accessToken, { page: 0, perPage: 100 });
   }
 
   // ---- browse directory contents ----

@@ -170,8 +170,8 @@ export class PipelineService {
         agent,
         'read',
       );
-    } catch(err) {
-      console.error('was not able to invite agent user', err)
+    } catch (err) {
+      console.error('was not able to invite agent user', err);
     }
 
     const now = Date.now();

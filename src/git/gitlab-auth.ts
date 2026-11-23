@@ -12,7 +12,7 @@ export const GITLAB_SCOPES = [
   'openid',
   'profile',
   'email',
-  'create_repository'
+  'create_repository',
 ];
 
 export const gitlabOAuthClient = new ClientOAuth2({

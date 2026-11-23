@@ -190,7 +190,7 @@ export class SupabaseService {
     await secretsClient.kvV2Write(`tenants/${userId}/${projectId}`, 'secret', {
       data: newTenant,
     });
-    
+
     return newTenant;
   }
 
